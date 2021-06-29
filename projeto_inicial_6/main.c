@@ -184,15 +184,27 @@ void boolXor()
         emit("XOR AX, BX");
 }
 
-/* analisa e traduz uma expressão Booleana */
+/* analisa e traduz um fator booleano */
 void boolFactor()
 {
-        if (!isBoolean(look))
-                expected("Boolean Literal");
-        if (getBoolean())
-                emit("MOV AX, -1");
-        else
-                emit("MOV AX, 0");
+        if (isBoolean(look)) {
+                if (getBoolean())
+                        emit("MOV AX, -1");
+                else
+                        emit("MOV AX, 0");
+        } else
+                relation();
+}
+
+/* analisa e traduz um fator booleno com NOT opcional */
+void notFactor()
+{
+        if (look == '!') {
+                match('!');
+                boolFactor();
+                emit("NOT AX");
+        } else
+                boolFactor();
 }
 
 
@@ -227,13 +239,16 @@ void boolTerm()
         }
 }
 
-/* analisa e traduz um fator booleno com NOT opcional */
-void notFactor()
+
+/* analisa e traduz uma relação */
+void relation()
 {
-        if (look == '!') {
-                match('!');
-                boolFactor();
-                emit("NOT AX");
-        } else
-                boolFactor();
+        emit("# relation");
+        nextChar();
+}
+
+/* reconhece operadores relacionais */
+int isRelOp(char c)
+{
+        return (c == '=' || c == '#' || c == '<' || c == '>');
 }
