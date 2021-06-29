@@ -1,0 +1,7 @@
+# depslib dependency file v1.0
+1624931188 source:d:\google drive\ifb\12ª semestre\3º compiladores\9 - projeto (c)\1 - atividade relatório inicial\projeto_inicial\main.c
+	<stdio.h>
+	<stdlib.h>
+	<stdarg.h>
+	<ctype.h>
+
