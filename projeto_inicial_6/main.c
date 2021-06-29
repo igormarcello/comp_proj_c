@@ -252,3 +252,275 @@ int isRelOp(char c)
 {
         return (c == '=' || c == '#' || c == '<' || c == '>');
 }
+
+/* reconhece e traduz um operador de igualdade */
+void equals()
+{
+        int l1, l2;
+
+        match('=');
+        l1 = newLabel();
+        l2 = newLabel();
+        expression();
+        emit("POP BX");
+        emit("CMP BX, AX");
+        emit("JE L%d", l1);
+        emit("MOV AX, 0");
+        emit("JMP L%d", l2);
+        postLabel(l1);
+        emit("MOV AX, -1");
+        postLabel(l2);
+}
+
+/* reconhece e traduz um operador de não-igualdade */
+void notEquals()
+{
+        int l1, l2;
+
+        match('#');
+        l1 = newLabel();
+        l2 = newLabel();
+        expression();
+        emit("POP BX");
+        emit("CMP BX, AX");
+        emit("JNE L%d", l1);
+        emit("MOV AX, 0");
+        emit("JMP L%d", l2);
+        postLabel(l1);
+        emit("MOV AX, -1");
+        postLabel(l2);
+}
+
+/* reconhece e traduz um operador de maior que */
+void greater()
+{
+        int l1, l2;
+
+        match('>');
+        l1 = newLabel();
+        l2 = newLabel();
+        expression();
+        emit("POP BX");
+        emit("CMP BX, AX");
+        emit("JG L%d", l1);
+        emit("MOV AX, 0");
+        emit("JMP L%d", l2);
+        postLabel(l1);
+        emit("MOV AX, -1");
+        postLabel(l2);
+}
+
+/* reconhece e traduz um operador de menor que */
+void less()
+{
+        int l1, l2;
+
+        match('<');
+        l1 = newLabel();
+        l2 = newLabel();
+        expression();
+        emit("POP BX");
+        emit("CMP BX, AX");
+        emit("JL L%d", l1);
+        emit("MOV AX, 0");
+        emit("JMP L%d", l2);
+        postLabel(l1);
+        emit("MOV AX, -1");
+        postLabel(l2);
+}
+
+/* analisa e traduz uma relação */
+void relation()
+{
+        expression();
+        if (isRelOp(look)) {
+                emit("PUSH AX");
+                switch (look) {
+                  case '=':
+                        equals();
+                        break;
+                  case '#':
+                        notEquals();
+                        break;
+                  case '>':
+                        greater();
+                        break;
+                  case '<':
+                        less();
+                        break;
+                }
+        }
+}
+
+
+/* analisa e traduz um identificador */
+void ident()
+{
+        char name;
+
+        name = getName();
+        if (look == '(') {
+                match('(');
+                match(')');
+                emit("CALL %c", name);
+        } else
+                emit("MOV AX, [%c]", name);
+}
+
+/* analisa e traduz um fator matemático */
+void factor()
+{
+
+        if (look == '(') {
+                match('(');
+                boolExpression();
+                match(')');
+        } else if(isalpha(look))
+                ident();
+        else
+                emit("MOV AX, %c", getNum());
+}
+
+/* analisa e traduz um fator com sinal opcional */
+void signedFactor()
+{
+        if (look == '+')
+                nextChar();
+        if (look == '-') {
+                nextChar();
+                if (isdigit(look))
+                        emit("MOV AX, -%c", getNum());
+                else {
+                        factor();
+                        emit("NEG AX");
+                }
+        } else
+                factor();
+}
+
+/* reconhece e traduz uma multiplicação */
+void multiply()
+{
+        match('*');
+        factor();
+        emit("POP BX");
+        emit("IMUL BX");
+}
+
+/* reconhece e traduz uma divisão */
+void divide()
+{
+        match('/');
+        factor();
+        emit("POP BX");
+        emit("XCHG AX, BX");
+        emit("CWD");
+        emit("IDIV BX");
+}
+
+/* analisa e traduz um termo matemático */
+void term()
+{
+        signedFactor();
+        while (isMulOp(look)) {
+                emit("PUSH AX");
+                switch(look) {
+                  case '*':
+                        multiply();
+                        break;
+                  case '/':
+                        divide();
+                        break;
+                }
+        }
+}
+
+/* reconhece e traduz uma soma */
+void add()
+{
+        match('+');
+        term();
+        emit("POP BX");
+        emit("ADD AX, BX");
+}
+
+/* reconhece e traduz uma subtração */
+void subtract()
+{
+        match('-');
+        term();
+        emit("POP BX");
+        emit("SUB AX, BX");
+        emit("NEG AX");
+}
+
+/* analisa e traduz uma expressão matemática */
+void expression()
+{
+        term();
+        while (isAddOp(look)) {
+                emit("PUSH AX");
+                switch(look) {
+                  case '+':
+                        add();
+                        break;
+                  case '-':
+                        subtract();
+                        break;
+                }
+        }
+}
+
+/* reconhece uma linha em branco */
+void newLine()
+{
+        if (look == '\n')
+                nextChar();
+}
+
+/* analisa e traduz um bloco de comandos */
+void block(int exitLabel)
+{
+        int follow;
+
+        follow = 0;
+
+        while (!follow) {
+                newLine();
+                switch (look) {
+                  case 'i':
+                        doIf(exitLabel); break;
+                  case 'w':
+                        doWhile(); break;
+                  case 'p':
+                        doLoop(); break;
+                  case 'r':
+                        doRepeat(); break;
+                  case 'f':
+                        doFor(); break;
+                  case 'd':
+                        doDo(); break;
+                  case 'b':
+                        doBreak(exitLabel); break;
+                  case 'e':
+                  case 'l':
+                  case 'u':
+                        follow = 1;
+                        break;
+                  default:
+                        other(); break;
+                }
+                newLine();
+        }
+}
+
+/* analisa e traduz um comando de atribuição */
+void assignment()
+{
+        char name;
+
+        name = getName();
+        match('=');
+        boolExpression();
+        emit("MOV [%c], AX", name);
+}
