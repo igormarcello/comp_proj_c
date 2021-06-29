@@ -30,8 +30,15 @@ void emit(char *fmt, ...);
 int main()
 {
     init();
+    expression();
 
     return 0;
+}
+
+/* reconhece operador aditivo */
+int isAddOp(char c)
+{
+        return (c == '+' || c == '-');
 }
 
 /* inicialização do compilador */
@@ -139,3 +146,98 @@ void emit(char *fmt, ...)
 
     putchar('\n');
 }
+
+/* analisa e traduz um fator matemático */
+void factor()
+{
+        if (look == '(') {
+                match('(');
+                expression();
+                match(')');
+        } else
+                emit("MOV AX, %c", getNum());
+}
+
+/* reconhece e traduz uma multiplicação */
+void multiply()
+{
+        match('*');
+        factor();
+        emit("POP BX");
+        emit("IMUL BX");
+}
+
+/* reconhece e traduz uma divisão */
+void divide()
+{
+        match('/');
+        factor();
+        emit("POP BX");
+        emit("XCHG AX, BX");
+        emit("CWD");
+        emit("IDIV BX");
+}
+
+/* analisa e traduz um termo */
+void term()
+{
+        factor();
+        while (look == '*' || look == '/') {
+                emit("PUSH AX");
+                switch(look) {
+                  case '*':
+                        multiply();
+                        break;
+                  case '/':
+                        divide();
+                        break;
+                  default:
+                        expected("MulOp");
+                        break;
+                }
+        }
+}
+
+/* reconhece e traduz uma adição */
+void add()
+{
+        match('+');
+        term();
+        emit("POP BX");
+        emit("ADD AX, BX");
+}
+
+/* reconhece e traduz uma subtração */
+void subtract()
+{
+        match('-');
+        term();
+        emit("POP BX");
+        emit("SUB AX, BX");
+        emit("NEG AX");
+}
+
+/* reconhece e traduz uma expressão */
+void expression()
+{
+        if (isAddOp(look))
+                emit("XOR AX, AX");
+        else
+                term();
+        while (isAddOp(look)) {
+                emit("PUSH AX");
+                switch(look) {
+                  case '+':
+                        add();
+                        break;
+                  case '-':
+                        subtract();
+                        break;
+                  default:
+                        expected("AddOp");
+                        break;
+                }
+        }
+}
+
+
