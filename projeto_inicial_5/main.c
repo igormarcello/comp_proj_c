@@ -154,14 +154,12 @@ void other()
 /* analisa e traduz um programa completo */
 void program()
 {
-        block();
-        if (look != 'e')
-                expected("End");
+        block(-1);
+        match('e');
         emit("END");
 }
-
 /* analisa e traduz um bloco de comandos */
-void block()
+void block(int exitLabel)
 {
         int follow;
 
@@ -169,29 +167,27 @@ void block()
 
         while (!follow) {
                 switch (look) {
-                   case 'i':
-                        doIf();
-                        break;
-                   case 'w':
-                        doWhile();
-                        break;
-                   case 'p':
-                        doLoop();
-                        break;
-                   case 'r':
-                        doRepeat();
-                        break;
-                   case 'e':
-                   case 'l':
-                   case 'u':
+                  case 'i':
+                        doIf(exitLabel); break;
+                  case 'w':
+                        doWhile(); break;
+                  case 'p':
+                        doLoop(); break;
+                  case 'r':
+                        doRepeat(); break;
+                  case 'f':
+                        doFor(); break;
+                  case 'd':
+                        doDo(); break;
+                  case 'b':
+                        doBreak(exitLabel); break;
+                  case 'e':
+                  case 'l':
+                  case 'u':
                         follow = 1;
                         break;
-                    case 'f':
-                        doFor();
-                        break;
-                   default:
-                        other();
-                        break;
+                  default:
+                        other(); break;
                 }
         }
 }
@@ -209,7 +205,7 @@ int postLabel(int lbl)
 }
 
 /* analisa e traduz um comando IF */
-void doIf()
+void doIf(int exitLabel)
 {
         int l1, l2;
 
@@ -218,13 +214,13 @@ void doIf()
         l1 = newLabel();
         l2 = l1;
         emit("JZ L%d", l1);
-        block();
+        block(exitLabel);
         if (look == 'l') {
                 match('l');
                 l2 = newLabel();
                 emit("JMP L%d", l2);
                 postLabel(l1);
-                block();
+                block(exitLabel);
         }
         match('e');
         postLabel(l2);
@@ -247,34 +243,22 @@ void doWhile()
         postLabel(l1);
         condition();
         emit("JZ L%d", l2);
-        block();
+        block(l2);
         match('e');
         emit("JMP L%d", l1);
         postLabel(l2);
 }
 
-/* analisa e traduz um comando LOOP */
-void doLoop()
-{
-        int l;
-
-        match('p');
-        l = newLabel();
-        postLabel(l);
-        block();
-        match('e');
-        emit("JMP L%d", l);
-}
 
 /* analisa e traduz um REPEAT-UNTIL*/
 void doRepeat()
 {
-        int l;
+        int l, l2;
 
         match('r');
         l = newLabel();
         postLabel(l);
-        block();
+        block(l2);
         match('u');
         condition();
         emit("JZ L%d", l);
@@ -304,7 +288,7 @@ void doFor()
         emit("PUSH BX");
         emit("CMP AX, BX");
         emit("JG L%d", l2);
-        block();
+        block(l2);
         match('e');
         emit("JMP L%d", l1);
         postLabel(l2);
@@ -316,6 +300,48 @@ void expression()
         emit("# EXPR");
 }
 
+/* analisa e traduz um comando DO*/
+void doDo()
+{
+        int l1, l2;
 
+        match('d');
+        l1 = newLabel();
+        l2 = newLabel();
+        expression();
+        emit("MOV CX, AX");
+        postLabel(l1);
+        emit("PUSH CX");
+        block(l2);
+        emit("POP CX");
+        emit("LOOP L%d", l1);
+        emit("PUSH CX");
+        postLabel(l2);
+        emit("POP CX");
+}
+
+/* analisa e traduz um comando LOOP*/
+void doLoop()
+{
+        int l1, l2;
+
+        match('p');
+        l1 = newLabel();
+        l2 = newLabel();
+        postLabel(l1);
+        block(l2);
+        match('e');
+        emit("JMP L%d", l1);
+        postLabel(l2);
+}
+
+/* analisa e traduz um comando BREAK */
+void doBreak(int exitLabel)
+{
+        match('b');
+        if (exitLabel == -1)
+                fatal("No loop to break from.");
+        emit("JMP L%d", exitLabel);
+}
 
 
