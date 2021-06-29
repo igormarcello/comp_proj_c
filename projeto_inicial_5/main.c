@@ -14,6 +14,7 @@ Este código é de livre distribuição e uso.
 #include <ctype.h>
 
 char look; /* O caracter lido "antecipadamente" (lookahead) */
+int labelCount; /* Contador usado pelo gerador de rótulos */
 
 /* protótipos */
 void init();
@@ -39,7 +40,9 @@ int main()
 /* inicialização do compilador */
 void init()
 {
-    nextChar();
+    nextChar(0);
+    newLabel();
+
 }
 
 /* lê próximo caracter da entrada */
@@ -161,6 +164,45 @@ void program()
 void block()
 {
         while (look != 'e') {
-                other();
+                switch (look) {
+                  case 'i':
+                        doIf();
+                        break;
+                  default:
+                        other();
+                        break;
+                }
         }
+}
+
+/* gera um novo rótulo único */
+int newLabel()
+{
+        return labelCount++;
+}
+
+/* emite um rótulo */
+int postLabel(int lbl)
+{
+        printf("L%d:\n", lbl);
+}
+
+/* analisa e traduz um comando IF */
+void doIf()
+{
+        int l;
+
+        match('i');
+        l = newLabel();
+        condition();
+        emit("JZ L%d", l);
+        block();
+        match('e');
+        postLabel(l);
+}
+
+/* analisa e traduz uma condição */
+void condition()
+{
+        emit("# condition");
 }
