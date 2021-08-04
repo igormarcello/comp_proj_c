@@ -147,6 +147,7 @@ void prog() {
 
     match('p');
     header();
+    topdecls();
     mainblock();
     match('.');
 
@@ -198,3 +199,41 @@ void mainblock() {
     match('e');
     epilog();
 }
+
+void allocvar(char name)
+
+{
+
+        printf("%c:\tdw 0\n", name);
+
+}
+
+void decl()
+{
+    match('v');
+    for (;;) {
+        allocvar(getName());
+        if (look != ',')
+        break;
+    match(',');
+
+    }
+
+}
+
+void topdecls()
+{
+    while (look != 'b') {
+        switch (look) {
+            case 'v':
+                decl();
+            break;
+            default:
+            error("Unrecognized keyword.");
+            expected("BEGIN");
+            break;
+        }
+    }
+}
+
+
