@@ -13,6 +13,9 @@ Este código é de livre distribuição e uso.
 #include <stdarg.h>
 #include <ctype.h>
 
+#define VARTBL_SZ 26
+char vartbl[VARTBL_SZ];
+
 char look; /* O caracter lido "antecipadamente" (lookahead) */
 
 /* protótipos */
@@ -23,7 +26,7 @@ void fatal(char *fmt, ...);
 void expected(char *fmt, ...);
 void match(char c);
 char getName();
-char getNum();
+int getNum();
 void emit(char *fmt, ...);
 
 /* PROGRAMA PRINCIPAL */
@@ -117,16 +120,18 @@ char getName()
 }
 
 /* recebe um número inteiro */
-char getNum()
-{
-    char num;
-
+int getNum(){
+    int i;
+    i = 0;
     if (!isdigit(look))
-        expected("Integer");
-    num = look;
-    nextChar();
+    expected("Integer");
+    while (isdigit(look)) {
+        i *= 10;
+        i += look - '0';
+        nextChar();
 
-    return num;
+    }
+        return i;
 }
 
 /* emite uma instrução seguida por uma nova linha */
@@ -201,10 +206,17 @@ void mainblock() {
 }
 
 void allocvar(char name)
-
 {
-
-        printf("%c:\tdw 0\n", name);
+    int value = 0, signal = 1;
+    if (look == '=') {
+        match('=');
+        if (look == '-') {
+            match('-');
+            signal = -1;
+        }
+        value = signal * getNum();
+    }
+    printf("%c:\tdw %d\n", name, value);
 
 }
 
@@ -236,4 +248,8 @@ void topdecls()
     }
 }
 
+int intable(char name)
+{
+    return (vartbl[name - 'A'] != ' ');
 
+}
