@@ -13,6 +13,7 @@ Este código é de livre distribuição e uso.
 #include <stdarg.h>
 #include <ctype.h>
 
+char cur_class; /* classe atual lida por getclass */
 char look; /* O caracter lido "antecipadamente" (lookahead) */
 
 /* protótipos */
@@ -30,8 +31,11 @@ void emit(char *fmt, ...);
 int main()
 {
     init();
-    prog();
-
+    while (look != EOF) {
+        getclass();
+        gettype();
+        topdecl();
+    }
     return 0;
 }
 
@@ -257,3 +261,67 @@ void statements()
         nextchar();
     match('e');
 }
+
+void getclass(){
+    if (look == 'a' || look == 'x' || look == 's') {
+        cur_class = look;
+        nextchar();
+        break;
+    } else
+    cur_class = 'a';
+}
+
+void gettype()
+{
+    cur_type = ' ';
+    if (look == 'u') {
+        cur_sign = 'u';
+        cur_type = 'i';
+        nextchar();
+    } else {
+        cur_sign = 's';
+    }
+    if (look == 'i' || look == 'l' || look == 'c') {
+        cur_type = look;
+        nextchar();
+    }
+}
+
+void topdecl(){
+    char name;
+    name = getname();
+    if (look == '(')
+    dofunc(name);
+    else
+    dodata(name);
+}
+
+void dofunc(char name){
+
+    match('(');
+    match(')');
+    match('{');
+    match('}');
+
+    if (cur_type == ' ')
+        cur_type = 'i';
+            printf("Class: %c, Sign: %c, Type: %c, Function: %c\n",
+            cur_class, cur_sign, cur_type, name);
+}
+
+void dodata(char name)
+{
+    if (cur_type == ' ')
+    expected("Type declaration");
+    for (;;) {
+        printf("Class: %c, Sign: %c, Type: %c, Data: %c\n",
+        cur_class, cur_sign, cur_type, name);
+        if (look != ',')
+        break;
+        match(',');
+        name = getname();
+
+    }
+    match(';');
+}
+
