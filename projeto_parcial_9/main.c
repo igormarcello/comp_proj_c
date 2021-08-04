@@ -30,6 +30,7 @@ void emit(char *fmt, ...);
 int main()
 {
     init();
+    prog();
 
     return 0;
 }
