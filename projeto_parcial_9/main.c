@@ -141,12 +141,28 @@ void emit(char *fmt, ...)
     putchar('\n');
 }
 
+void prolog(){
+    printf(".model small\n");
+    printf(".stack\n");
+    printf(".code\n");
+    printf("PROG segment byte public\n");
+    printf("\tassume cs:PROG,ds:PROG,es:PROG,ss:PROG\n");
+}
+
+void epilog(char name){
+    printf("exit_prog:\n");
+    printf("\tmov ax,4C00h\n");
+    printf("\tint 21h\n");
+    printf("PROG ends\n");
+    printf("\tend %c\n", name);
+}
+
 /* analisa e traduz um programa */
 void prog()
 {
     char name;
     match('p'); /* trata do cabeçalho do programa */
-    name = getname();
+    name = getName();
     prolog(name);
     match('.');
     epilog(name);
