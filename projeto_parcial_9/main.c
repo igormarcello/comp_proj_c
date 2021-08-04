@@ -163,7 +163,79 @@ void prog()
     char name;
     match('p'); /* trata do cabeçalho do programa */
     name = getName();
-    prolog(name);
+    prolog();
+    doblock(name);
     match('.');
     epilog(name);
+}
+
+/* analisa e traduz um bloco pascal */
+void doblock(char name)
+{
+    declarations();
+    printf("%c:\n", name);
+    statements();
+
+}
+
+void declarations()
+{
+    int valid;
+    do {
+            valid = 1;
+    switch (look) {
+        case 'l':
+            labels(); break;
+        case 'c':
+            constants(); break;
+        case 't':
+            types(); break;
+        case 'v':
+            variables(); break;
+        case 'p':
+            doprocedure(); break;
+        case 'f':
+            dofunction(); break;
+    default:
+        valid = 0; break;
+            }
+    } while (valid);
+}
+
+void labels()
+{
+    match('l');
+}
+
+void constants()
+{
+    match('c');
+}
+
+void types()
+{
+    match('t');
+}
+
+void variables()
+{
+    match('v');
+}
+
+void doprocedure()
+{
+    match('p');
+}
+
+void dofunction()
+{
+    match('f');
+}
+
+void statements()
+{
+    match('b');
+    while (look != 'e')
+        nextchar();
+    match('e');
 }
