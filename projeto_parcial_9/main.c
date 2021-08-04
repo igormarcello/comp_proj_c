@@ -157,17 +157,35 @@ void epilog(char name){
     printf("\tend %c\n", name);
 }
 
-/* analisa e traduz um programa */
+/* analisa e traduz um programa
 void prog()
 {
     char name;
-    match('p'); /* trata do cabeçalho do programa */
+    match('p');  trata do cabeçalho do programa
     name = getName();
     prolog();
     doblock(name);
     match('.');
     epilog(name);
+}*/
+
+/* analisa e traduz um programa Small C */
+
+void prog() {
+    while (look != EOF) {
+        switch (look) {
+            case '#':
+                preproc(); break;
+            case 'i':
+                intdecl(); break;
+            case 'c':
+                chardecl(); break;
+            default:
+                dofunction(); break;
+        }
+    }
 }
+
 
 /* analisa e traduz um bloco pascal */
 void doblock(char name)
