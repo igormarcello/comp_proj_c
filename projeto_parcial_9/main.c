@@ -1,42 +1,24 @@
-/*
-The Cradle - O Berço
-
-O código abaixo foi escrito por Felipo Soranz e é uma adaptação
-do código original em Pascal escrito por Jack W. Crenshaw em sua
-série "Let's Build a Compiler".
-
-Este código é de livre distribuição e uso.
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <ctype.h>
 
+int look; /* O caracter lido "antecipadamente" (lookahead) */
 char cur_class; /* classe atual lida por getclass */
-char look; /* O caracter lido "antecipadamente" (lookahead) */
-
-/* protótipos */
-void init();
-void nextChar();
-void error(char *fmt, ...);
-void fatal(char *fmt, ...);
-void expected(char *fmt, ...);
-void match(char c);
-char getName();
-char getNum();
-void emit(char *fmt, ...);
+char cur_sign;
+char cur_type;
 
 /* PROGRAMA PRINCIPAL */
 int main()
 {
     init();
-    while (look != EOF) {
+
+    while (look != EOF)
+    {
         getclass();
         gettype();
         topdecl();
     }
-    return 0;
 }
 
 /* inicialização do compilador */
@@ -145,7 +127,33 @@ void emit(char *fmt, ...)
     putchar('\n');
 }
 
-void prolog(){
+
+/* analisa e traduz um programa */
+void prog()
+{
+    while (look != EOF)
+    {
+
+        switch (look)
+        {
+        case '#':
+            preproc();
+            break;
+        case 'i':
+            intdecl();
+            break;
+        case 'c':
+            chardecl();
+            break;
+        default:
+            dofunction();
+            break;
+        }
+    }
+}
+
+void prolog()
+{
     printf(".model small\n");
     printf(".stack\n");
     printf(".code\n");
@@ -153,7 +161,9 @@ void prolog(){
     printf("\tassume cs:PROG,ds:PROG,es:PROG,ss:PROG\n");
 }
 
-void epilog(char name){
+void epilog(char name)
+{
+
     printf("exit_prog:\n");
     printf("\tmov ax,4C00h\n");
     printf("\tint 21h\n");
@@ -161,67 +171,50 @@ void epilog(char name){
     printf("\tend %c\n", name);
 }
 
-/* analisa e traduz um programa
-void prog()
-{
-    char name;
-    match('p');  trata do cabeçalho do programa
-    name = getName();
-    prolog();
-    doblock(name);
-    match('.');
-    epilog(name);
-}*/
-
-/* analisa e traduz um programa Small C */
-
-void prog() {
-    while (look != EOF) {
-        switch (look) {
-            case '#':
-                preproc(); break;
-            case 'i':
-                intdecl(); break;
-            case 'c':
-                chardecl(); break;
-            default:
-                dofunction(); break;
-        }
-    }
-}
-
-
 /* analisa e traduz um bloco pascal */
 void doblock(char name)
 {
     declarations();
     printf("%c:\n", name);
     statements();
-
 }
 
 void declarations()
 {
+
     int valid;
-    do {
-            valid = 1;
-    switch (look) {
+
+    do
+    {
+        valid = 1;
+
+        switch (look)
+        {
         case 'l':
-            labels(); break;
+            labels();
+            break;
         case 'c':
-            constants(); break;
+            constants();
+            break;
         case 't':
-            types(); break;
+            types();
+            break;
         case 'v':
-            variables(); break;
+            variables();
+            break;
         case 'p':
-            doprocedure(); break;
+            doprocedure();
+            break;
         case 'f':
-            dofunction(); break;
-    default:
-        valid = 0; break;
-            }
-    } while (valid);
+            dofunction();
+            break;
+        default:
+            valid = 0;
+            break;
+        }
+
+    }
+    while (valid);
 }
 
 void labels()
@@ -257,46 +250,63 @@ void dofunction()
 void statements()
 {
     match('b');
+
     while (look != 'e')
-        nextchar();
+        nextChar();
+
     match('e');
 }
 
-void getclass(){
-    if (look == 'a' || look == 'x' || look == 's') {
+void chardecl() {}
+void intdecl() {}
+void preproc() {}
+
+void getclass()
+{
+    if (look == 'a' || look == 'x' || look == 's')
+    {
         cur_class = look;
-        nextchar();
-        break;
-    } else
-    cur_class = 'a';
+        nextChar();
+        return;
+    }
+    else
+        cur_class = 'a';
 }
 
 void gettype()
 {
     cur_type = ' ';
-    if (look == 'u') {
+
+    if (look == 'u')
+    {
         cur_sign = 'u';
         cur_type = 'i';
-        nextchar();
-    } else {
-        cur_sign = 's';
+        nextChar();
     }
-    if (look == 'i' || look == 'l' || look == 'c') {
-        cur_type = look;
-        nextchar();
-    }
-}
-
-void topdecl(){
-    char name;
-    name = getname();
-    if (look == '(')
-    dofunc(name);
     else
-    dodata(name);
+        cur_sign = 's';
+
+    if (look == 'i' || look == 'l' || look == 'c')
+    {
+        cur_type = look;
+        nextChar();
+    }
 }
 
-void dofunc(char name){
+void topdecl()
+{
+    char name;
+
+    name = getName();
+
+    if (look == '(')
+        dofunc(name);
+    else
+        dodata(name);
+}
+
+void dofunc(char name)
+{
 
     match('(');
     match(')');
@@ -305,23 +315,28 @@ void dofunc(char name){
 
     if (cur_type == ' ')
         cur_type = 'i';
-            printf("Class: %c, Sign: %c, Type: %c, Function: %c\n",
-            cur_class, cur_sign, cur_type, name);
+
+    printf("Class: %c, Sign: %c, Type: %c, Function: %c\n",
+           cur_class, cur_sign, cur_type, name);
 }
 
 void dodata(char name)
 {
     if (cur_type == ' ')
-    expected("Type declaration");
-    for (;;) {
-        printf("Class: %c, Sign: %c, Type: %c, Data: %c\n",
-        cur_class, cur_sign, cur_type, name);
-        if (look != ',')
-        break;
-        match(',');
-        name = getname();
+        expected("Type declaration");
 
+    for (;;)
+    {
+        printf("Class: %c, Sign: %c, Type: %c, Data: %c\n",
+               cur_class, cur_sign, cur_type, name);
+
+        if (look != ',')
+            break;
+
+        match(',');
+        name = getName();
     }
     match(';');
 }
+
 
