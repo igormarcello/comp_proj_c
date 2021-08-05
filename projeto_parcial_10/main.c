@@ -1,27 +1,14 @@
 /*
-
 TINY Versão 1.0
-
-O código abaixo foi escrito por Felipo Soranz e é uma adaptação
-
-do código original em Pascal escrito por Jack W. Crenshaw em sua
-
-série "Let's Build a Compiler".
-
-Este código é de livre distribuição e uso.
 
 */
 
 #include <stdio.h>
-
 #include <stdlib.h>
-
 #include <string.h>
 
 #define SYMTBL_SZ 1000
-
 #define KWLIST_SZ 11
-
 #define MAXTOKEN 16
 
 int lblcount; /* indica o rótulo atual */
