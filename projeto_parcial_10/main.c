@@ -14,6 +14,9 @@ Este código é de livre distribuição e uso.
 #include <ctype.h>
 
 #define VARTBL_SZ 26
+#define TRUE -1
+#define FALSE 0
+
 char vartbl[VARTBL_SZ];
 
 char look; /* O caracter lido "antecipadamente" (lookahead) */
@@ -514,3 +517,12 @@ void expression()
 
 }
 
+int isorop(char c){
+    return (c == '|' || c == '~');
+}
+
+int isrelop(char c)
+{
+    return (strchr("=#<>", c) != NULL);
+
+}
