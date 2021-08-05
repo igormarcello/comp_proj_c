@@ -526,3 +526,93 @@ int isrelop(char c)
     return (strchr("=#<>", c) != NULL);
 
 }
+
+/* analisa e traduz uma relação */
+void relation()
+{
+    char op;
+    expression();
+    if (isrelop(look)) {
+        op = look;
+        match(op); /* só para remover o operador do caminho */
+        asm_push;
+        expression();
+        asm_popcompare();
+        asm_relop(op);
+        }
+
+}
+
+/* analisa e traduz um fator booleano com NOT inicial */
+void notfactor()
+{
+    if (look == '!') {
+        match('!');
+        relation();
+        asm_not();
+        } else
+        relation();
+
+}
+
+/* analisa e traduz um termo booleano */
+void boolterm()
+{
+    notfactor();
+    while (look == '&') {
+        asm_push();
+        match('&');
+        notfactor();
+        asm_popand();
+
+    }
+
+}
+
+/* reconhece e traduz um "OR" */
+void boolor()
+{
+    match('|');
+    boolterm();
+    asm_popor();
+
+}
+
+/* reconhece e traduz um "xor" */
+void boolxor()
+{
+    match('~');
+    boolterm();
+    asm_popxor();
+
+}
+
+/* analisa e traduz uma expressão booleana */
+void boolexpression()
+{
+    boolterm();
+    while (isorop(look)) {
+        asm_push();
+        switch (look) {
+            case '|': boolor(); break;
+            case '~': boolxor(); break;
+
+        }
+
+    }
+
+}
+
+/* desvio incondicional */
+void asm_jmp(int label)
+{
+    printf("\tjmp L%d\n", label);
+
+}
+
+/* desvio se falso (0) */
+void asm_jmpfalse(int label)
+{
+    printf("\tjz L%d\n", label);
+
+}
