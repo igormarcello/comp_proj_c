@@ -43,7 +43,11 @@ int main()
 /* inicialização do compilador */
 void init()
 {
-    nextChar();
+    i = 0;
+    for (i = 0; i < VARTBL_SZ; i++)
+    vartbl[i] = ' ';
+    nextchar();
+
 }
 
 /* lê próximo caracter da entrada */
@@ -197,24 +201,34 @@ void epilog()
 
 }
 
-void mainblock() {
-
+void mainblock()
+{
     match('b');
     prolog();
+    block();
     match('e');
     epilog();
+
 }
 
 void allocvar(char name)
 {
     int value = 0, signal = 1;
+
+    if (intable(name)) {
+        fprintf(stderr, "Duplicate variable name: %c", name);
+        exit(1);
+        } else
+
+    vartbl[name - 'A'] = 'v';
+
     if (look == '=') {
         match('=');
         if (look == '-') {
             match('-');
             signal = -1;
         }
-        value = signal * getNum();
+        value = signal * getnum();
     }
     printf("%c:\tdw %d\n", name, value);
 
@@ -253,3 +267,250 @@ int intable(char name)
     return (vartbl[name - 'A'] != ' ');
 
 }
+
+/* analisa e traduz um comando de atribuição */
+void assignment()
+{
+    char name;
+    name = getname();
+    match('=');
+    expression();
+    asm_store(name);
+
+}
+
+void block()
+{
+    while (look != 'e')
+    assignment();
+
+}
+
+/* zera o registrador primário */
+void asm_clear()
+{
+    printf("\txor ax, ax\n");
+
+}
+
+/* negativa o reg. primário */
+void asm_negative()
+{
+    printf("\tneg ax\n");
+
+}
+
+/* carrega uma constante numérica no reg. prim. */
+void asm_loadconst(int i)
+{
+    printf("\tmov ax, %d\n", i);
+
+}
+
+/* carrega uma variável no reg. prim. */
+void asm_loadvar(char name)
+{
+    if (!intable(name))
+    undefined(name);
+    printf("\tmov ax, word ptr %c\n", name);
+
+}
+
+/* coloca reg. prim. na pilha */
+void asm_push()
+{
+    printf("\tpush ax\n");
+
+}
+
+/* adiciona o topo da pilha ao reg. prim. */
+void asm_popadd()
+{
+    rintf("\tpop bx\n");
+    printf("\tadd ax, bx\n");
+
+}
+
+/* subtrai o reg. prim. do topo da pilha */
+void asm_popsub()
+{
+    printf("\tpop bx\n");
+    printf("\tsub ax, bx\n");
+    printf("\tneg ax\n");
+
+}
+
+/* multiplica o topo da pilha pelo reg. prim. */
+void asm_popmul()
+{
+    printf("\tpop bx\n");
+    printf("\timul bx\n");
+
+}
+
+/* divide o topo da pilha pelo reg. prim. */
+void asm_popdiv()
+{
+    printf("\tpop bx\n");
+    printf("\txchg ax, bx\n");
+    printf("\tcwd\n");
+    printf("\tidiv bx\n");
+
+}
+
+/* armazena reg. prim. em variável */
+void asm_store(char name)
+{
+    if (!intable(name))
+    undefined(name);
+    printf("\tmov word ptr bx, ax\n");
+
+}
+
+/* avisa a respeito de um identificador desconhecido */
+void undefined(char name)
+{
+    fprintf(stderr, "Error: Undefined identifier %c\n", name);
+    exit(1);
+
+}
+
+/* analisa e traduz um fator matemático */
+void factor()
+{
+    if (look == '(') {
+        match('(');
+        expression();
+        match(')');
+
+    } else if (isalpha(look))
+    asm_loadvar(getName());
+    else
+    asm_loadconst(getnum());
+
+}
+
+/* analisa e traduz um fator negativo */
+void negfactor()
+{
+    match('-');
+    if (isdigit(look))
+    asm_loadconst(-getnum());
+    else {
+        factor();
+        asm_negative();
+
+    }
+
+}
+
+/* analisa e traduz um fator inicial */
+void firstfactor()
+{
+    switch (look) {
+        case '+':
+        match('+');
+        factor();
+        break;
+        case '-':
+        negfactor();
+        break;
+        default:
+        factor();
+        break;
+
+    }
+
+}
+
+/* reconhece e traduz uma multiplicação */
+void multiply()
+{
+    match('*');
+    factor();
+    asm_popmul();
+
+}
+
+/* reconhece e traduz uma divisão */
+void divide()
+{
+    match('/');
+    factor();
+    asm_popdiv();
+
+}
+
+/* código comum usado por "term" e "firstterm" */
+void term1()
+{
+    while (ismulop(look))  {
+        asm_push();
+        switch (look) {
+            case '*':
+            multiply();
+            break;
+            case '/':
+            divide();
+            break;
+
+        }
+
+    }
+
+}
+
+/* analisa e traduz um termo matemático */
+void term()
+{
+    factor();
+    term1();
+
+}
+
+/* analisa e traduz um termo inicial */
+void firstterm()
+{
+    firstfactor();
+    term1();
+
+}
+
+/* reconhece e traduz uma adição */
+void add()
+{
+    match('+');
+    term();
+    asm_popadd();
+
+}
+
+/* reconhece e traduz uma subtração*/
+void subtract()
+{
+    match('-');
+    term();
+    asm_popsub();
+
+}
+
+/* analisa e traduz uma expressão matemática */
+void expression()
+{
+    firstterm();
+    while (isaddop(look))  {
+        asm_push();
+        switch (look) {
+            case '+':
+            add();
+            break;
+            case '-':
+            subtract();
+            break;
+
+        }
+
+    }
+
+}
+
