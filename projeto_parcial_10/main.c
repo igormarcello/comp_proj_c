@@ -284,8 +284,18 @@ void assignment()
 
 void block()
 {
-    while (look != 'e')
-    assignment();
+    int follow = 0;
+    while (!follow) {
+        switch (look) {
+            case 'i': doif(); break;
+            case 'w': dowhile(); break;
+            case 'e':
+                case 'l': follow = 1; break;
+            default: assignment(); break;
+
+        }
+
+    }
 
 }
 
@@ -616,3 +626,60 @@ void asm_jmpfalse(int label)
     printf("\tjz L%d\n", label);
 
 }
+
+
+void doif()
+{
+    int l1, l2;
+    match('i');
+    boolexpression();
+
+    l1 = newlabel();
+    l2 = l1;
+    asm_jmpfalse(l1);
+    block();
+
+    if (look == 'l') {
+        match('l');
+        l2 = newlabel();
+        asm_jmp(l2);
+
+        printf("L%d:\n", l1);
+        block();
+
+    }
+
+    printf("L%d:\n", l2);
+    match('e');
+
+}
+
+void dowhile()
+{
+    int l1, l2;
+    match('w');
+    l1 = newlabel();
+    l2 = newlabel();
+
+    printf("L%d:\n", l1);
+
+    boolexpression();
+    asm_jmpfalse(l2)
+    block();
+    match('e');
+    asm_jmp(l1);
+
+    printf("L%d:\n", l2);
+
+}
+
+void newline()
+{
+    while (look == '\n') {
+        nextchar();
+        skipwhite();
+
+    }
+
+}
+
