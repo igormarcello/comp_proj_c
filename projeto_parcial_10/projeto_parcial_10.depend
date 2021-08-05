@@ -1,7 +1,6 @@
 # depslib dependency file v1.0
-1628118928 source:d:\google drive\ifb\12ª semestre\3º compiladores\9 - projeto (c)\1 - atividade relatório inicial\comp_proj_c\projeto_parcial_10\main.c
+1628131910 source:d:\google drive\ifb\12ª semestre\3º compiladores\9 - projeto (c)\1 - atividade relatório inicial\comp_proj_c\projeto_parcial_10\main.c
 	<stdio.h>
 	<stdlib.h>
-	<stdarg.h>
-	<ctype.h>
+	<string.h>
 
