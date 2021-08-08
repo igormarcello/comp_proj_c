@@ -1,23 +1,6 @@
-/*
-
-Chamadas de procedimentos
-
-O código abaixo foi escrito por Felipo Soranz e é uma adaptação
-
-do código original em Pascal escrito por Jack E. Crenshaw em sua
-
-série "Let's Build a Compiler".
-
-Este código é de livre distribuição e uso.
-
-*/
-
 #include <stdio.h>
-
 #include <stdlib.h>
-
 #include <string.h>
-
 #define SYMTBL_SZ 26
 
 char look; /* O caracter lido "antecipadamente" (lookahead) */
@@ -27,69 +10,45 @@ char symtbl[SYMTBL_SZ]; /* tabela de símbolos */
 /* rotinas utilitárias */
 
 void init();
-
 void nextchar();
-
 void error(char *s);
-
 void fatal(char *s);
-
 void expected(char *s);
-
 void undefined(char name);
-
 void duplicated(char name);
-
 void unrecognized(char name);
-
 void notvar(char name);
 
 /* tratamento da tabela de símbolos */
 
 char symtype(char name);
-
 char intable(char name);
-
 void addsymbol(char name, char type);
-
 void checkvar(char name);
 
 /* analisador léxico rudimentar */
 
 int isaddop(char c);
-
 int ismulop(char c);
-
 void skipwhite();
-
 void newline();
-
 void match(char c);
-
 char getname();
-
 char getnum();
 
 /* geração de código */
 
 void asm_loadvar(char name);
-
 void asm_storevar(char name);
-
 void asm_allocvar(char name);
 
 /* analisador sintático */
 
 void expression();
-
 void assignment();
-
 void doblock();
-
 void beginblock();
-
 void decl();
-
 void topdecls();
 
 /* PROGRAMA PRINCIPAL */
