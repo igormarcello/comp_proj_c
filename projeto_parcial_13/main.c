@@ -51,21 +51,51 @@ void beginblock();
 void decl();
 void topdecls();
 
-/* PROGRAMA PRINCIPAL */
+/* analiza e traduz o bloco principal do programa */
 
-int main()
-
+void domain()
 {
+    char name;
 
-                init();
+    match('P');
+    name = getname();
+    newline();
 
-        topdecls();
-
-        beginblock();
-
-                return 0;
+    if (intable(name))
+        duplicated(n);
+    prolog();
+    beginblock();
 
 }
+
+/* analiza e traduz as declarações globais */
+
+void topdecls()
+{
+    while (look != '.') {
+            switch (look) {
+                case 'v': decl(); break;
+                case 'p': doproc(); break;
+                case 'P': domain(); break;
+
+                default: unrecognized(look); break;
+                }
+                newline();
+        }
+}
+
+/* PROGRAMA PRINCIPAL */
+int main()
+{
+    init();
+    header();
+    topdecls();
+    epilog();
+    return 0;
+
+}
+
+
 
 /* inicialização do compilador */
 
@@ -476,29 +506,30 @@ void decl()
 /* analiza e traduz as declarações globais */
 
 void topdecls()
+{
+    while (look != 'b') {
+            switch (look) {
+                case 'v': decl(); break;
+                case 'p': doproc(); break;
+                default: unrecognized(look); break;
+                }
+                newline();
+            }
+}
 
+/* analisa e traduz uma declaração de procedimento */
+void doproc()
 {
 
-        while (look != 'b') {
-
-                switch (look) {
-
-                  case 'v':
-
-                        decl();
-
-                        break;
-
-                  default:
-
-                        unrecognized(look);
-
-                        break;
-
-                }
-
+                char name;
+                match('p');
+                name = getname();
                 newline();
 
-        }
-
+                if (intable(name))
+                               duplicated(n);
+                addsymbol(name, 'p');
+                printf("%c:\n", name);
+                beginblock();
+                asm_return();
 }
