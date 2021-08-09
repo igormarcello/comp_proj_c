@@ -1,0 +1,43 @@
+# depslib dependency file v1.0
+1628487842 source:d:\google drive\ifb\12ª semestre\3º compiladores\9 - projeto (c)\1 - atividade relatório inicial\comp_proj_c\projeto_parcial_15\main.c
+	<stdio.h>
+	"input.c"
+	"output.c"
+	"errors.c"
+	"scanner1.c"
+	"bib.c"
+
+1602709118 d:\google drive\ifb\12ª semestre\3º compiladores\9 - projeto (c)\1 - atividade relatório inicial\comp_proj_c\projeto_parcial_15\input.c
+	<stdio.h>
+	"input.h"
+
+1602709118 d:\google drive\ifb\12ª semestre\3º compiladores\9 - projeto (c)\1 - atividade relatório inicial\comp_proj_c\projeto_parcial_15\input.h
+
+1602709118 d:\google drive\ifb\12ª semestre\3º compiladores\9 - projeto (c)\1 - atividade relatório inicial\comp_proj_c\projeto_parcial_15\output.c
+	<stdio.h>
+	<stdarg.h>
+
+1602709118 d:\google drive\ifb\12ª semestre\3º compiladores\9 - projeto (c)\1 - atividade relatório inicial\comp_proj_c\projeto_parcial_15\errors.c
+	<stdio.h>
+	<stdlib.h>
+	<stdarg.h>
+	"errors.h"
+
+1602709118 d:\google drive\ifb\12ª semestre\3º compiladores\9 - projeto (c)\1 - atividade relatório inicial\comp_proj_c\projeto_parcial_15\errors.h
+
+1602709118 d:\google drive\ifb\12ª semestre\3º compiladores\9 - projeto (c)\1 - atividade relatório inicial\comp_proj_c\projeto_parcial_15\scanner1.c
+	<ctype.h>
+	"input.h"
+	"scanner1.h"
+
+1602709118 d:\google drive\ifb\12ª semestre\3º compiladores\9 - projeto (c)\1 - atividade relatório inicial\comp_proj_c\projeto_parcial_15\scanner1.h
+
+1602709118 d:\google drive\ifb\12ª semestre\3º compiladores\9 - projeto (c)\1 - atividade relatório inicial\comp_proj_c\projeto_parcial_15\bib.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<ctype.h>
+	"bib.h"
+
+1602709118 d:\google drive\ifb\12ª semestre\3º compiladores\9 - projeto (c)\1 - atividade relatório inicial\comp_proj_c\projeto_parcial_15\bib.h
+

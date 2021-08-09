@@ -2,13 +2,12 @@
 #include "parser.c"
 
 int main()
-
 {
-
     initInput();
+    assignment();
 
-    factor();
+    system("PAUSE");
 
     return 0;
-
 }
+
